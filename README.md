@@ -42,6 +42,16 @@ Arduino Board Configuration:
 * Optimize: Faster
 * Keyboard Layout: US English
 
+<details>
+<summary>Troubleshooting for Linux</summary>
+<br>
+If your libraries are not being recognized by the compiler, go to File -> Preferences and check
+show verbose output during []compile. The compiler should print some helpful message that show
+where it is searching for your libraries. Try reinstalling the libraries in this location.
+</details>
+
+<br>
+
 Tips:
 * Set the Arduino output path to speed up compilation times (e.g. ./build)
 * View the [ExampleDevice.cpp](docs/ExampleDevice.cpp) file to understand how to support a new device
