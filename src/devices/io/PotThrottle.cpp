@@ -102,15 +102,22 @@ RawSignalData *PotThrottle::acquireRawSignal() {
  * and the checks are performed on a 0-1000 scale with a percentage tolerance
  */
 bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
+
+    //Initial setup that gets values for our maximum and minimum output from our pedal
     PotThrottleConfiguration *config = (PotThrottleConfiguration *) getConfiguration();
+
+
     int32_t calcThrottle1, calcThrottle2;
 
+    //converts voltage to 0-1000, acts like a percentage
     calcThrottle1 = normalizeInput(rawSignal->input1, config->minimumLevel1, config->maximumLevel1);
+
+    //for a pedal that is inverted readings for voltage, but is not ours so should not be a problem
     if (config->numberPotMeters == 1 && config->throttleSubType == 2) { // inverted
         calcThrottle1 = 1000 - calcThrottle1;
     }
 
-
+    //if our reading is beyond the tolerance that we set we will return that the pedal is not working properly
     if (calcThrottle1 > (1000 + CFG_THROTTLE_TOLERANCE))
     {
         if (status == OK)
@@ -119,12 +126,15 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
         faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_A, true);
         return false;
     }
+
     else
     {
+        //if this is below the tolerance but above 100%, we will set the reading to 100%
         if (calcThrottle1 > 1000) calcThrottle1 = 1000;
         faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_A);
     }
 
+    //Pedal reading is below the minimum with tolerance, raise a fault and return false
     if (calcThrottle1 < (0 - CFG_THROTTLE_TOLERANCE)) {
         if (status == OK)
             Logger::error(POTACCELPEDAL, "ERR_LOW_T1: throttle 1 value out of range: %i ", calcThrottle1);
@@ -132,15 +142,20 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
         faultHandler.raiseFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_A, true);
         return false;
     }
+
     else
     {
+        //if this is above the tolerance but below 0%, we will set the reading to 0%
         if (calcThrottle1 < 0) calcThrottle1 = 0;
         faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_A);
     }
 
+    //We have two analog in readings for the pedal so we will be using this because our pedal is a two sensor pedal
     if (config->numberPotMeters > 1) {
+
         calcThrottle2 = normalizeInput(rawSignal->input2, config->minimumLevel2, config->maximumLevel2);
 
+        //if our reading is beyond the tolerance that we set we will return that the pedal is not working properly
         if (calcThrottle2 > (1000 + CFG_THROTTLE_TOLERANCE)) {
             if (status == OK)
                 Logger::error(POTACCELPEDAL, "ERR_HIGH_T2: throttle 2 value out of range: %i", calcThrottle2);
@@ -150,10 +165,11 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
         }
         else
         {
+            //if this is below the tolerance but above 100%, we will set the reading to 100%
             if (calcThrottle2 > 1000) calcThrottle2 = 1000;
             faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_HIGH_B);
         }
-
+        //Pedal reading is below the minimum with tolerance, raise a fault and return false
         if (calcThrottle2 < (0 - CFG_THROTTLE_TOLERANCE)) {
             if (status == OK)
                 Logger::error(POTACCELPEDAL, "ERR_LOW_T2: throttle 2 value out of range: %i", calcThrottle2);
@@ -163,10 +179,11 @@ bool PotThrottle::validateSignal(RawSignalData *rawSignal) {
         }
         else
         {
+            //if this is above the tolerance but below 0%, we will set the reading to 0%
             if (calcThrottle2 < 0) calcThrottle2 = 0;
             faultHandler.cancelOngoingFault(POTACCELPEDAL, FAULT_THROTTLE_LOW_B);
         }
-
+        
         if (config->throttleSubType == 2) {
             // inverted throttle 2 means the sum of the two throttles should be 1000
             if ( abs(1000 - calcThrottle1 - calcThrottle2) > ThrottleMaxErrValue) {
