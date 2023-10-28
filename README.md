@@ -13,7 +13,7 @@ The project now builds in the Arduino IDE. So, use it to compile, send the firmw
 
 ## Getting Started
 You will need the following to have any hope of compiling and running the firmware:
-
+UPDATE: You can get the folder with all the dependencies [here](https://www.notion.so/VCU-971f10755d1b408aac168ba938852bb5?pvs=4)
 NOTE: versions listed below have been tested
 - A GEVCU board. This version supports GEVCU7 hardware (the one with Teensy MicroMod)
 - Arduino IDE 1.8.16^
